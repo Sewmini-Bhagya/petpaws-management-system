@@ -65,7 +65,7 @@ exports.createAppointment = async (req, res) => {
 
     // GET SERVICES
     const [services] = await db.promise().query(
-      `SELECT service_id, duration_minutes, resource_type
+      `SELECT service_id, duration_minutes, resource_type, required_specialization
        FROM services
        WHERE service_id IN (${service_ids.map(() => '?').join(',')})`,
       service_ids
@@ -76,6 +76,7 @@ exports.createAppointment = async (req, res) => {
         message: 'Invalid service selection'
       });
     }
+
 
     // CHECK SINGLE RESOURCE TYPE
     const resourceTypes = [...new Set(services.map(s => s.resource_type))];
@@ -159,6 +160,52 @@ exports.createAppointment = async (req, res) => {
       });
     }
 
+    // GET SPECIALIZATION
+    const specializations = [...new Set(
+      services.map(s => s.required_specialization).filter(s => s !== null)
+    )];
+
+    let requiredSpecialization = null;
+
+    if (specializations.length > 1) {
+      return res.status(400).json({
+        message: 'Selected services require different vet specializations'
+      });
+    }
+
+    if (specializations.length === 1) {
+      requiredSpecialization = specializations[0];
+    }
+
+
+    // FIND AVAILABLE VET
+    let vet_id = null;
+
+    if (requiredSpecialization) {
+      const [vets] = await db.promise().query(
+        `SELECT v.vet_id
+        FROM veterinarians v
+        WHERE v.specialization = ?
+        AND v.vet_id NOT IN (
+          SELECT aa.vet_id
+          FROM appointment_assignments aa
+          JOIN appointments a ON aa.appointment_id = a.appointment_id
+          WHERE a.appointment_start < ?
+          AND a.appointment_end > ?
+        )
+        LIMIT 1`,
+        [requiredSpecialization, end, start]
+      );
+
+      if (vets.length === 0) {
+        return res.status(400).json({
+          message: 'No available vet for this time slot'
+        });
+      }
+
+      vet_id = vets[0].vet_id;
+    }
+
     // INSERT APPOINTMENT
     const [result] = await db.promise().query(
       `INSERT INTO appointments
@@ -187,6 +234,15 @@ exports.createAppointment = async (req, res) => {
        VALUES (?, ?)`,
       [appointment_id, resource_id]
     );
+    
+    // ASSIGN VET
+    if (vet_id) {
+      await db.promise().query(
+        `INSERT INTO appointment_assignments (appointment_id, vet_id)
+        VALUES (?, ?)`,
+        [appointment_id, vet_id]
+      );
+    }
 
     // FORMAT TIME (timezone safe)
     const formattedEnd = dayjs(end)
