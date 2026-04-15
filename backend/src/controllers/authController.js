@@ -1,7 +1,7 @@
 const db = require('../config/db');
 const bcrypt = require('bcrypt');
 const jwt = require('jsonwebtoken');
-
+const { sendEmail } = require('../utils/emailService');
 
 
 // REGISTER USER
@@ -41,7 +41,14 @@ exports.registerUser = async (req, res) => {
       [email, hashedPassword, roleId, 'ACTIVE']
     );
 
+    await sendEmail(
+      email,
+      'Welcome to PetPaws 🐾',
+      'Your account has been created successfully!'
+    );
+
     res.status(201).json({ message: 'User registered as CLIENT' });
+
 
   } catch (error) {
     res.status(500).json({ message: 'Server error' });
