@@ -14,7 +14,7 @@ exports.addPayment = async (req, res) => {
       });
     }
 
-    // CHECK INVOICE
+    // GET INVOICE
     const [invoices] = await db.promise().query(
       'SELECT total_amount FROM invoices WHERE invoice_id = ?',
       [invoice_id]
@@ -28,7 +28,7 @@ exports.addPayment = async (req, res) => {
 
     const total_amount = parseFloat(invoices[0].total_amount);
 
-    // SUM OF EXISTING PAYMENTS
+    // GET EXISTING PAYMENTS
     const [payments] = await db.promise().query(
       'SELECT SUM(amount) AS paid FROM payments WHERE invoice_id = ?',
       [invoice_id]
@@ -41,7 +41,7 @@ exports.addPayment = async (req, res) => {
     // PREVENT OVERPAYMENT
     if (amount > remaining) {
       return res.status(400).json({
-        message: `Payment exceeds remaining balance (${remaining})`
+        message: `Payment exceeds remaining balance (${remaining.toFixed(2)})`
       });
     }
 
@@ -52,9 +52,30 @@ exports.addPayment = async (req, res) => {
       [invoice_id, payment_method, amount]
     );
 
+    const newPaid = paid_amount + parseFloat(amount);
+
+    // DETERMINE STATUS
+    let status = 'UNPAID';
+
+    if (newPaid === 0) {
+      status = 'UNPAID';
+    } else if (newPaid < total_amount) {
+      status = 'PARTIAL';
+    } else {
+      status = 'PAID';
+    }
+
+    // UPDATE INVOICE STATUS
+    await db.promise().query(
+      'UPDATE invoices SET status = ? WHERE invoice_id = ?',
+      [status, invoice_id]
+    );
+
+    // SINGLE RESPONSE
     res.status(201).json({
       message: 'Payment recorded successfully',
-      remaining_balance: (remaining - amount).toFixed(2)
+      remaining_balance: (total_amount - newPaid).toFixed(2),
+      status
     });
 
   } catch (error) {
