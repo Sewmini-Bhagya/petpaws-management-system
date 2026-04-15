@@ -80,3 +80,68 @@ exports.generateInvoice = async (req, res) => {
     });
   }
 };
+
+
+// GET INVOICE DETAILS
+exports.getInvoice = async (req, res) => {
+  const { invoice_id } = req.params;
+
+  try {
+    // GET INVOICE
+    const [invoices] = await db.promise().query(
+      `SELECT invoice_id, client_id, appointment_id, invoice_date, total_amount, status
+       FROM invoices
+       WHERE invoice_id = ?`,
+      [invoice_id]
+    );
+
+    if (invoices.length === 0) {
+      return res.status(404).json({
+        message: 'Invoice not found'
+      });
+    }
+
+    const invoice = invoices[0];
+
+    // GET ITEMS
+    const [items] = await db.promise().query(
+      `SELECT service_id, description, amount
+       FROM invoice_items
+       WHERE invoice_id = ?`,
+      [invoice_id]
+    );
+
+    // GET PAYMENTS
+    const [payments] = await db.promise().query(
+      `SELECT payment_method, amount, payment_date
+       FROM payments
+       WHERE invoice_id = ?`,
+      [invoice_id]
+    );
+
+    // CALCULATE PAID
+    const paid = payments.reduce(
+      (sum, p) => sum + parseFloat(p.amount),
+      0
+    );
+
+    const remaining = (parseFloat(invoice.total_amount) - paid).toFixed(2);
+
+    res.json({
+      invoice,
+      items,
+      payments,
+      summary: {
+        total: parseFloat(invoice.total_amount).toFixed(2),
+        paid: paid.toFixed(2),
+        remaining
+      }
+    });
+
+  } catch (error) {
+    console.error(error);
+    res.status(500).json({
+      message: 'Server error'
+    });
+  }
+};
