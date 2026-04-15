@@ -263,6 +263,69 @@ exports.createAppointment = async (req, res) => {
   }
 };
 
+// ADD PERFORMED SERVICE
+exports.addPerformedService = async (req, res) => {
+  const userId = req.user.user_id;
+  const { appointment_id } = req.params;
+  const { service_id } = req.body;
+
+  try {
+    // CHECK IF USER IS A VET
+    const [vets] = await db.promise().query(
+      'SELECT vet_id FROM veterinarians WHERE user_id = ?',
+      [userId]
+    );
+
+    if (vets.length === 0) {
+      return res.status(403).json({
+        message: 'Only vets can add services'
+      });
+    }
+
+    // CHECK APPOINTMENT EXISTS
+    const [appointments] = await db.promise().query(
+      'SELECT appointment_id FROM appointments WHERE appointment_id = ?',
+      [appointment_id]
+    );
+
+    if (appointments.length === 0) {
+      return res.status(404).json({
+        message: 'Appointment not found'
+      });
+    }
+
+    // PREVENT DUPLICATES
+    const [existing] = await db.promise().query(
+      `SELECT * FROM appointment_performed_services
+       WHERE appointment_id = ? AND service_id = ?`,
+      [appointment_id, service_id]
+    );
+
+    if (existing.length > 0) {
+      return res.status(400).json({
+        message: 'Service already added to this appointment'
+      });
+    }
+
+    // INSERT
+    await db.promise().query(
+      `INSERT INTO appointment_performed_services 
+       (appointment_id, service_id, added_by)
+       VALUES (?, ?, ?)`,
+      [appointment_id, service_id, userId]
+    );
+
+    res.status(201).json({
+      message: 'Service added successfully'
+    });
+
+  } catch (error) {
+    console.error(error);
+    res.status(500).json({
+      message: 'Server error'
+    });
+  }
+};
 
 // GET MY APPOINTMENTS
 exports.getMyAppointments = async (req, res) => {
