@@ -7,6 +7,7 @@ const adminRoutes = require('./routes/adminRoutes');
 const petRoutes = require('./routes/petRoutes');
 const documentRoutes = require('./routes/documentRoutes');
 const appointmentRoutes = require('./routes/appointmentRoutes');
+const invoiceRoutes = require('./routes/invoiceRoutes');
 
 
 // Middleware
@@ -18,6 +19,7 @@ app.use('/api/admin', adminRoutes);
 app.use('/api/pets', petRoutes);
 app.use('/api/documents', documentRoutes);
 app.use('/api/appointments', appointmentRoutes);
+app.use('/api/invoices', invoiceRoutes);
 
 // Health check route
 app.get('/', (req, res) => {
