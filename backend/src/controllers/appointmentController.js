@@ -80,6 +80,22 @@ exports.createAppointment = async (req, res) => {
       });
     }
 
+    // BED CONSTRAINT 
+
+    const [overlapping] = await db.promise().query(
+    `SELECT COUNT(*) AS count
+    FROM appointments
+    WHERE appointment_start < ?
+    AND appointment_end > ?`,
+    [appointment_end, appointment_start]
+    );
+
+    if (overlapping[0].count >= 6) {
+    return res.status(400).json({
+        message: 'No available beds for this time slot'
+    });
+    }
+
     // INSERT APPOINTMENT 
     await db.promise().query(
       `INSERT INTO appointments 
