@@ -2,12 +2,18 @@ const express = require('express');
 const router = express.Router();
 
 const authMiddleware = require('../middlewares/authMiddleware');
-const { createPet, getMyPets } = require('../controllers/petController');
+const {
+  createPet,
+  getMyPets,
+  updatePet,
+  deletePet,
+  getPetById
+} = require('../controllers/petController');
 
-// Create pet
 router.post('/', authMiddleware, createPet);
-
-// Get logged-in user's pets
 router.get('/my', authMiddleware, getMyPets);
+router.get('/:id', authMiddleware, getPetById);
+router.put('/:id', authMiddleware, updatePet);
+router.delete('/:id', authMiddleware, deletePet);
 
 module.exports = router;
