@@ -1,4 +1,5 @@
 const db = require('../config/db');
+const { sendEmail } = require('../utils/emailService');
 
 
 // GENERATE INVOICE
@@ -65,6 +66,24 @@ exports.generateInvoice = async (req, res) => {
       `INSERT INTO invoice_items (invoice_id, service_id, description, amount)
        VALUES ?`,
       [invoiceItems]
+    );
+
+    // GET USER EMAIL
+    const [users] = await db.promise().query(
+      `SELECT u.email
+      FROM users u
+      JOIN clients c ON u.user_id = c.user_id
+      WHERE c.client_id = ?`,
+      [client_id]
+    );
+
+    const userEmail = users[0].email;
+
+    // SEND EMAIL
+    await sendEmail(
+      userEmail,
+      'Your Invoice 🧾',
+      `Your invoice has been generated.\nTotal: Rs. ${total_amount}`
     );
 
     res.status(201).json({

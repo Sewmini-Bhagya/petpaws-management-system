@@ -291,18 +291,32 @@ exports.addPerformedService = async (req, res) => {
   const { service_id } = req.body;
 
   try {
-    // CHECK IF USER IS A VET
-    const [vets] = await db.promise().query(
-      'SELECT vet_id FROM veterinarians WHERE user_id = ?',
+    // CHECK IF USER IS VET OR RECEPTIONIST
+    const [users] = await db.promise().query(
+      'SELECT role_id FROM users WHERE user_id = ?',
       [userId]
     );
 
-    if (vets.length === 0) {
-      return res.status(403).json({
-        message: 'Only vets can add services'
-      });
+    if (users.length === 0) {
+      return res.status(404).json({ message: 'User not found' });
     }
 
+    const role_id = users[0].role_id;
+
+    // get role name
+    const [roles] = await db.promise().query(
+      'SELECT role_name FROM roles WHERE role_id = ?',
+      [role_id]
+    );
+
+    const role = roles[0].role_name;
+
+    if (role !== 'VET' && role !== 'RECEPTIONIST') {
+      return res.status(403).json({
+        message: 'Only vets or receptionists can add services'
+      });
+    }
+    
     // CHECK APPOINTMENT EXISTS
     const [appointments] = await db.promise().query(
       'SELECT appointment_id FROM appointments WHERE appointment_id = ?',
