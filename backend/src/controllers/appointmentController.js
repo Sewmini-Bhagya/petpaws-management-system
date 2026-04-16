@@ -342,6 +342,18 @@ exports.addPerformedService = async (req, res) => {
       });
     }
 
+    // CHECK IF INVOICE EXISTS
+    const [invoices] = await db.promise().query(
+      'SELECT * FROM invoices WHERE appointment_id = ?',
+      [appointment_id]
+    );
+
+    if (invoices.length > 0) {
+      return res.status(400).json({
+        message: 'Cannot add services after invoice is generated'
+      });
+    }
+
     // INSERT
     await db.promise().query(
       `INSERT INTO appointment_performed_services 
