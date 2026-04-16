@@ -66,6 +66,7 @@ exports.addPayment = async (req, res) => {
       status = 'PAID';
     }
 
+
     // UPDATE INVOICE STATUS
     await db.promise().query(
       'UPDATE invoices SET status = ? WHERE invoice_id = ?',
@@ -84,12 +85,20 @@ exports.addPayment = async (req, res) => {
 
     const userEmail = users[0].email;
 
-    // SEND EMAIL
-    await sendEmail(
-      userEmail,
-      'Payment Received 💳',
-      `Your payment of Rs. ${amount} has been received.\nRemaining balance: Rs. ${(total_amount - newPaid).toFixed(2)}\nStatus: ${status}`
-    );
+    // SEND EMAIL 
+    if (status === 'PAID') {
+      await sendEmail(
+        userEmail,
+        'Invoice Fully Paid 🎉',
+        `Your invoice of Rs. ${amount} has been fully paid. Thank you!`
+      );
+    } else {
+      await sendEmail(
+        userEmail,
+        'Payment Received 💳',
+        `Your payment of Rs. ${amount} has been received.\nRemaining balance: Rs. ${(total_amount - newPaid).toFixed(2)}\nStatus: ${status}`
+      );
+    }
 
     // SINGLE RESPONSE
     res.status(201).json({
