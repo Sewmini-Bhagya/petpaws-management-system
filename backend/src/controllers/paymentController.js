@@ -1,4 +1,5 @@
 const db = require('../config/db');
+const { sendEmail } = require('../utils/emailService');
 
 
 // ADD PAYMENT
@@ -69,6 +70,25 @@ exports.addPayment = async (req, res) => {
     await db.promise().query(
       'UPDATE invoices SET status = ? WHERE invoice_id = ?',
       [status, invoice_id]
+    );
+
+    // GET USER EMAIL
+    const [users] = await db.promise().query(
+      `SELECT u.email
+      FROM users u
+      JOIN clients c ON u.user_id = c.user_id
+      JOIN invoices i ON c.client_id = i.client_id
+      WHERE i.invoice_id = ?`,
+      [invoice_id]
+    );
+
+    const userEmail = users[0].email;
+
+    // SEND EMAIL
+    await sendEmail(
+      userEmail,
+      'Payment Received 💳',
+      `Your payment of Rs. ${amount} has been received.\nRemaining balance: Rs. ${(total_amount - newPaid).toFixed(2)}\nStatus: ${status}`
     );
 
     // SINGLE RESPONSE
