@@ -192,7 +192,7 @@ exports.payhereNotify = async (req, res) => {
 
     // Check invoice
     const [invoices] = await db.promise().query(
-      `SELECT i.invoice_id, i.total_amount, u.email
+      `SELECT i.invoice_id, i.total_amount, i.status, u.email
        FROM invoices i
        JOIN clients c ON i.client_id = c.client_id
        JOIN users u ON c.user_id = u.user_id
@@ -208,6 +208,12 @@ exports.payhereNotify = async (req, res) => {
 
     // Only process successful payments
     if (status_code == 2) {
+
+      // Check if already paid
+      if (invoices[0].status === 'PAID') {
+        return res.status(200).send('Already processed');
+      }
+
       const amount = parseFloat(payhere_amount);
 
       // Insert payment
