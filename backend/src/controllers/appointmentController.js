@@ -3,6 +3,7 @@ const db = require('../config/db');
 const dayjs = require('dayjs');
 const utc = require('dayjs/plugin/utc');
 const timezone = require('dayjs/plugin/timezone');
+const { sendEmail } = require('../utils/emailService');
 
 dayjs.extend(utc);
 dayjs.extend(timezone);
@@ -245,9 +246,29 @@ exports.createAppointment = async (req, res) => {
     }
 
     // FORMAT TIME (timezone safe)
-    const formattedEnd = dayjs(end)
+    const formattedStart = dayjs(start)
       .tz('Asia/Colombo')
       .format('YYYY-MM-DD HH:mm:ss');
+
+    const formattedEnd = dayjs(end)
+      .tz('Asia/Colombo')
+      .format('HH:mm:ss');
+
+    
+    // GET USER EMAIL
+    const [users] = await db.promise().query(
+      'SELECT email FROM users WHERE user_id = ?',
+      [userId]
+    );
+
+    const userEmail = users[0].email;
+
+    // SEND EMAIL
+    await sendEmail(
+      userEmail,
+      'Appointment Confirmed 🐾',
+      `Your appointment is scheduled from ${formattedStart} to ${formattedEnd}`
+    );
 
     res.status(201).json({
       message: 'Appointment created successfully',

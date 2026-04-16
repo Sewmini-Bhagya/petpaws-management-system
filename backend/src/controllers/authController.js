@@ -36,9 +36,17 @@ exports.registerUser = async (req, res) => {
     const hashedPassword = await bcrypt.hash(password, 10);
 
     // Insert user
-    await db.promise().query(
+    const [result] = await db.promise().query(
       'INSERT INTO users (email, password_hash, role_id, status) VALUES (?, ?, ?, ?)',
       [email, hashedPassword, roleId, 'ACTIVE']
+    );
+
+    const user_id = result.insertId;
+
+    // CREATE CLIENT PROFILE
+    await db.promise().query(
+      'INSERT INTO clients (user_id, created_at) VALUES (?, NOW())',
+      [user_id]
     );
 
     await sendEmail(
