@@ -1,5 +1,6 @@
 const express = require('express');
 const app = express();
+const cors = require("cors");
 
 // Routes
 const authRoutes = require('./routes/authRoutes');
@@ -9,6 +10,11 @@ const documentRoutes = require('./routes/documentRoutes');
 const appointmentRoutes = require('./routes/appointmentRoutes');
 const invoiceRoutes = require('./routes/invoiceRoutes');
 const paymentRoutes = require('./routes/paymentRoutes');
+
+app.use(cors({
+  origin: "http://localhost:5173",
+  credentials: true
+}));
 
 
 // Middleware
@@ -27,6 +33,7 @@ app.use('/api/payments', paymentRoutes);
 app.get('/', (req, res) => {
   res.send('PetPaws API running');
 });
+
 
 
 module.exports = app;
