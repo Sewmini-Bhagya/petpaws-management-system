@@ -38,7 +38,7 @@ function Home() {
           </h1>
 
           <p style={heroDesc}>
-            Book appointments, view medical records, and manage your pet’s care
+            Book appointments, view medical records, and manage your pet's care
             online with ease.
           </p>
 
@@ -130,7 +130,7 @@ function Home() {
     </p>
 
     <p>
-      Our team is experienced, and more importantly, we truly care about what’s best for your pet. 
+      Our team is experienced, and more importantly, we truly care about what's best for your pet. 
       We use <strong>modern equipment</strong> and thoughtful approaches to ensure safe and reliable treatment.
     </p>
 
@@ -141,7 +141,7 @@ function Home() {
   </div>
 
   <div style={highlight}>
-    From routine checkups to advanced treatments, your pet’s health is always our priority ❤️
+    From routine checkups to advanced treatments, your pet's health is always our priority ❤️
   </div>
 
 </div>

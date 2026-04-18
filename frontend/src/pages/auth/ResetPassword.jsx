@@ -1,6 +1,7 @@
 import { useState } from "react";
 import { useNavigate, useParams } from "react-router-dom";
 import API from "../../api/axios";
+import bgImg from "../../assets/background.jpeg";
 
 function ResetPassword() {
   const navigate = useNavigate();
@@ -95,7 +96,10 @@ const overlay = {
   display: "flex",
   justifyContent: "center",
   alignItems: "center",
-  background: "#F7F9F7"
+  backgroundImage: `url(${bgImg})`,
+  backgroundSize: "cover",
+  backgroundPosition: "center",
+  position: "relative"
 };
 
 const card = {

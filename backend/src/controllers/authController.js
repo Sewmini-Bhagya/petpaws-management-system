@@ -104,7 +104,7 @@ exports.forgotPassword = async (req, res) => {
   const { email } = req.body;
 
   try {
-    const [users] = await db.promise().query(
+    const [users] = await db.query(
       "SELECT * FROM users WHERE email = ?",
       [email]
     );
@@ -150,7 +150,7 @@ exports.resetPassword = async (req, res) => {
 
     const hashedPassword = await bcrypt.hash(newPassword, 10);
 
-    await db.promise().query(
+    await db.query(
       "UPDATE users SET password_hash = ? WHERE user_id = ?",
       [hashedPassword, decoded.user_id]
     );
@@ -159,5 +159,28 @@ exports.resetPassword = async (req, res) => {
 
   } catch (error) {
     return res.status(400).json({ message: "Invalid or expired token" });
+  }
+};
+
+
+// GET CURRENT USER
+
+exports.getMe = async (req, res) => {
+  try {
+    const userId = req.user.user_id;
+
+    const [users] = await db.query(
+      `SELECT u.user_id, u.email, up.first_name
+       FROM users u
+       LEFT JOIN user_profiles up ON u.user_id = up.user_id
+       WHERE u.user_id = ?`,
+      [userId]
+    );
+
+    res.json(users[0]);
+
+  } catch (error) {
+    console.error(error);
+    res.status(500).json({ message: "Server error" });
   }
 };

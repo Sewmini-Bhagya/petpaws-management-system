@@ -1,6 +1,7 @@
 import { useState } from "react";
 import { useNavigate } from "react-router-dom";
-import API from "../../api/axios"; // ✅ IMPORTANT
+import API from "../../api/axios"; 
+import bgImg from "../../assets/background.jpeg";
 
 function ForgotPassword() {
   const navigate = useNavigate();
@@ -13,7 +14,7 @@ function ForgotPassword() {
         return;
       }
 
-      // 🔥 CALL BACKEND
+      // CALL BACKEND
       const res = await API.post("/auth/forgot-password", {
         email,
       });
@@ -64,14 +65,17 @@ function ForgotPassword() {
   );
 }
 
-/* 🎨 STYLES */
+/* STYLES */
 
 const overlay = {
   height: "100vh",
   display: "flex",
   justifyContent: "center",
   alignItems: "center",
-  background: "#F7F9F7"
+  backgroundImage: `url(${bgImg})`,
+  backgroundSize: "cover",
+  backgroundPosition: "center",
+  position: "relative"
 };
 
 const card = {

@@ -7,20 +7,29 @@ import API from "../../api/axios";
 
 function ClientDashboard() {
   const navigate = useNavigate();
-  const [user, setUser] = useState(null); 
+  const [user, setUser] = useState(null);
+  const [dashboard, setDashboard] = useState({
+    petCount: 0,
+    upcomingAppointments: 0,
+    pendingPayments: 0
+  }); 
 
     useEffect(() => {
-    const fetchUser = async () => {
-      try {
-        const res = await API.get("/auth/me"); 
-        setUser(res.data);
-      } catch (err) {
-        console.error(err);
-      }
-    };
+      const fetchData = async () => {
+        try {
+          const userRes = await API.get("/auth/me");
+          setUser(userRes.data);
 
-    fetchUser();
-  }, []);
+          const dashRes = await API.get("/client/dashboard");
+          setDashboard(dashRes.data);
+
+        } catch (err) {
+          console.error(err);
+        }
+      };
+
+      fetchData();
+    }, []);
 
   return (
     <div style={container}>
@@ -45,15 +54,18 @@ function ClientDashboard() {
         
         {/* SIDEBAR */}
         <div style={sidebar}>
-          <p style={navItem}>Home</p>
-          <p style={navItem} onClick={() => navigate("/pets")}>
-            My Pets
-          </p>
-          <p style={navItem}>Appointments</p>
-          <p style={navItem}>Payments</p>
+          <p style={navItem} onClick={() => navigate("/")}>Home</p>
+          <p style={navItem} onClick={() => navigate("/pets")}>My Pets</p>
+          <p style={navItem} onClick={() => navigate("/book")}>Appointments</p>
+          <p style={navItem} onClick={() => navigate("/payments")}>Payments</p>
 
           <div style={{ marginTop: "auto" }}>
-            <p style={navItem}>Logout ⏻</p>
+            <p style={navItem} onClick={() => { 
+              localStorage.removeItem("token"); 
+              navigate("/login");
+              }}
+            >Logout ⏻
+            </p>
           </div>
         </div>
 
@@ -62,7 +74,7 @@ function ClientDashboard() {
           
           {/* HEADER */}
           <div style={{ marginBottom: "1.5rem" }}>
-            <h1>Welcome {user?.email || "..."}</h1>
+            <h1>Welcome {user?.first_name || "..."}</h1>
             <p>
               Manage your pets, book appointments, and stay updated with their health.
             </p>
@@ -85,12 +97,12 @@ function ClientDashboard() {
 
               <div style={card}>
                 <h3>Appointments</h3>
-                <p>No upcoming</p>
+                <p>{dashboard.upcomingAppointments} upcoming</p>
               </div>
 
               <div style={card}>
                 <h3>Payments</h3>
-                <p>No dues</p>
+                <p>{dashboard.pendingPayments} pending</p>
               </div>
 
               <div
@@ -105,8 +117,8 @@ function ClientDashboard() {
 
           {/* BUTTONS */}
           <div style={{ marginTop: "2rem" }}>
-            <button style={actionBtn}>Book Appointment</button>
-            <button style={actionBtn}>Add Pet</button>
+            <button style={actionBtn} onClick={() => navigate("/book")}>Book Appointment</button>
+            <button style={actionBtn} onClick={() => navigate("/pets/add")}>Add Pet</button>
           </div>
 
         </div>
@@ -117,7 +129,7 @@ function ClientDashboard() {
   );
 }
 
-/* 🎨 STYLES */
+/* STYLES */
 
 const container = {
   display: "flex",
