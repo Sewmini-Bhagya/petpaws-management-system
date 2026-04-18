@@ -57,7 +57,7 @@ function App() {
           <Route path="/pets/:id" element={<PetProfile />} />
           <Route path="/pets/:id/history" element={<MedicalHistory />} />
           <Route path="/pets/:id/records" element={<MedicalRecords />} />
-          <Route path="/create-profile/:token" element={<CreateProfile />} />
+          <Route path="/create-profile" element={<CreateProfile />} />
 
         </Routes>
       </Router>

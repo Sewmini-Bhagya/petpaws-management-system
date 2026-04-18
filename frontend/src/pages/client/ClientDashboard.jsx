@@ -2,6 +2,7 @@ import dogImg from "../../assets/dog.jpeg";
 import { FiBell, FiUser } from "react-icons/fi";
 import { useNavigate } from "react-router-dom";
 import { useEffect, useState } from "react";
+import Footer from "../../components/Footer";
 import API from "../../api/axios";
 
 function ClientDashboard() {
@@ -111,31 +112,7 @@ function ClientDashboard() {
         </div>
       </div>
 
-      {/* FOOTER */}
-      <div style={footer}>
-        <div>
-          <h4>Pet Paws Animal Hospital</h4>
-          <p style={footerText}>Little Rome, Mudukatuwa, Marawila</p>
-          <p style={footerText}>Tel: 0766166538 / 0701100438</p>
-          <p style={footerText}>Email: petpawsanimalhospital@gmail.com</p>
-        </div>
-
-        <div>
-          <h4>Quick Links</h4>
-          <p style={footerText}>Home</p>
-          <p style={footerText}>About Us</p>
-          <p style={footerText}>Services</p>
-          <p style={footerText}>Book Appointment</p>
-          <p style={footerText}>Contact Us</p>
-        </div>
-
-        <div>
-          <h4>Open Hours</h4>
-          <p style={footerText}>Mon - Sat</p>
-          <p style={footerText}>9 AM - 9 PM</p>
-        </div>
-      </div>
-
+      <Footer />
     </div>
   );
 }
@@ -243,21 +220,6 @@ const actionBtn = {
   borderRadius: "10px",
   marginRight: "1rem",
   cursor: "pointer"
-};
-
-const footerText = {
-  margin: "2px 0" 
-};
-
-const footer = {
-  fontFamily: "times-new-roman",
-  background: "#6B8F71",
-  color: "white",
-  display: "flex",
-  justifyContent: "space-around",
-  padding: "1rem",
-  textAlign: "center",   
-  lineHeight: "1.1"
 };
 
 export default ClientDashboard;

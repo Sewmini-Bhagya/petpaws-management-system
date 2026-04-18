@@ -75,15 +75,17 @@ function Footer() {
         </p>
 
         {/*FaceBook*/}
-        <p style={{ marginTop: "0.5rem" }}>
+        <div style={{ marginTop: "0.5rem" }}>
           <p>Follow Us:</p> 
           <a
-            href="#"
+            href="https://facebook.com/petpawmarawila"
+            target="_blank"
+            rel="noopener noreferrer"
             style={linkStyle}
           >
             <FaFacebook style={{ size: "30", marginTop: "0rem" }} />
           </a>
-        </p>
+        </div>
       </div>
 
     </div>

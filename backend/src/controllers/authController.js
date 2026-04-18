@@ -10,9 +10,7 @@ exports.registerUser = async (req, res) => {
   const { email, password } = req.body;
 
   try {
-
-    // Check if user exists
-    const [existingUsers] = await db.promise().query(
+    const [existingUsers] = await db.query(
       'SELECT * FROM users WHERE email = ?',
       [email]
     );
@@ -21,8 +19,7 @@ exports.registerUser = async (req, res) => {
       return res.status(400).json({ message: 'User already exists' });
     }
 
-    // Get CLIENT role
-    const [roles] = await db.promise().query(
+    const [roles] = await db.query(
       "SELECT role_id FROM roles WHERE role_name = 'CLIENT'"
     );
 
@@ -32,11 +29,9 @@ exports.registerUser = async (req, res) => {
 
     const roleId = roles[0].role_id;
 
-    // Hash password
     const hashedPassword = await bcrypt.hash(password, 10);
 
-    // Insert user
-    const [result] = await db.promise().query(
+    const [result] = await db.query(
       'INSERT INTO users (email, password_hash, role_id, status) VALUES (?, ?, ?, ?)',
       [email, hashedPassword, roleId, 'ACTIVE']
     );
@@ -44,10 +39,7 @@ exports.registerUser = async (req, res) => {
     const user_id = result.insertId;
 
     const token = jwt.sign(
-      {
-        user_id: user_id,
-        role_id: roleId
-      },
+      { user_id, role_id: roleId },
       process.env.JWT_SECRET,
       { expiresIn: '1d' }
     );
@@ -57,8 +49,8 @@ exports.registerUser = async (req, res) => {
       token
     });
 
-
   } catch (error) {
+    console.error(error);
     res.status(500).json({ message: 'Server error' });
   }
 };
@@ -67,44 +59,44 @@ exports.registerUser = async (req, res) => {
 
 // LOGIN USER
 
-exports.loginUser = (req, res) => {
+exports.loginUser = async (req, res) => {
   const { email, password } = req.body;
 
-  db.query(
-    'SELECT * FROM users WHERE email = ?',
-    [email],
-    async (err, results) => {
-      if (err) {
-        return res.status(500).json(err);
-      }
+  try {
+    const [results] = await db.query(
+      'SELECT * FROM users WHERE email = ?',
+      [email]
+    );
 
-      if (results.length === 0) {
-        return res.status(401).json({ message: 'User not found' });
-      }
-
-      const user = results[0];
-
-      const isMatch = await bcrypt.compare(password, user.password_hash);
-
-      if (!isMatch) {
-        return res.status(401).json({ message: 'Invalid credentials' });
-      }
-
-      const token = jwt.sign(
-        {
-          user_id: user.user_id,
-          role_id: user.role_id
-        },
-        process.env.JWT_SECRET,
-        { expiresIn: '1d' }
-      );
-
-      res.json({
-        message: 'Login successful',
-        token
-      });
+    if (results.length === 0) {
+      return res.status(401).json({ message: 'User not found' });
     }
-  );
+
+    const user = results[0];
+
+    const isMatch = await bcrypt.compare(password, user.password_hash);
+
+    if (!isMatch) {
+      return res.status(401).json({ message: 'Invalid credentials' });
+    }
+
+    const token = jwt.sign(
+      {
+        user_id: user.user_id,
+        role_id: user.role_id
+      },
+      process.env.JWT_SECRET,
+      { expiresIn: '1d' }
+    );
+
+    res.json({
+      message: 'Login successful',
+      token
+    });
+
+  } catch (error) {
+    res.status(500).json({ message: 'Server error' });
+  }
 };
 
 // FORGOT PASSWORD

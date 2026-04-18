@@ -12,6 +12,7 @@ function CreateProfile() {
   const [city, setCity] = useState("");
 
   const handleCreate = async () => {
+
     if (!firstName || !lastName || !phone || !city) {
         alert("Please fill all fields!");
         return;
@@ -25,18 +26,33 @@ function CreateProfile() {
         }
 
     try {
-      await API.post("/profile", {
+      const token = localStorage.getItem("token");
+      console.log("TOKEN:", token);
+
+      const response = await API.post("/profile", {
         first_name: firstName,
         last_name: lastName,
         phone,
         city
       });
+      
+      console.log("SUCCESS:", response.data);
+
+      alert("Profile created successfully 🎉 Check your email!");
 
       navigate("/client");
     } catch (err) {
-      console.error(err.response?.data || err.message);
-      alert("Profile creation failed 😭");
+    console.log("🔥 FULL ERROR:", err);
+
+    if (err.response) {
+      console.log("STATUS:", err.response.status);
+      console.log("DATA:", err.response.data);
+    } else {
+      console.log("NO RESPONSE (network issue)");
     }
+
+    alert("Profile creation failed 😭");
+  }
   };
 
   return (
@@ -93,7 +109,7 @@ function CreateProfile() {
   );
 }
 
-/* 🎨 STYLES */
+/* STYLES */
 
 const overlay = {
   height: "100vh",
