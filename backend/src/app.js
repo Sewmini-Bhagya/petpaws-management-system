@@ -10,6 +10,7 @@ const documentRoutes = require('./routes/documentRoutes');
 const appointmentRoutes = require('./routes/appointmentRoutes');
 const invoiceRoutes = require('./routes/invoiceRoutes');
 const paymentRoutes = require('./routes/paymentRoutes');
+const profileRoutes = require("./routes/profileRoutes");
 
 app.use(cors({
   origin: "http://localhost:5173",
@@ -28,6 +29,7 @@ app.use('/api/documents', documentRoutes);
 app.use('/api/appointments', appointmentRoutes);
 app.use('/api/invoices', invoiceRoutes);
 app.use('/api/payments', paymentRoutes);
+app.use("/api/profile", profileRoutes);
 
 // Health check route
 app.get('/', (req, res) => {

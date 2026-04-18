@@ -1,9 +1,25 @@
 import dogImg from "../../assets/dog.jpeg";
 import { FiBell, FiUser } from "react-icons/fi";
 import { useNavigate } from "react-router-dom";
+import { useEffect, useState } from "react";
+import API from "../../api/axios";
 
 function ClientDashboard() {
-  const navigate = useNavigate(); // ✅ FIXED (inside component)
+  const navigate = useNavigate();
+  const [user, setUser] = useState(null); 
+
+    useEffect(() => {
+    const fetchUser = async () => {
+      try {
+        const res = await API.get("/auth/me"); 
+        setUser(res.data);
+      } catch (err) {
+        console.error(err);
+      }
+    };
+
+    fetchUser();
+  }, []);
 
   return (
     <div style={container}>
@@ -45,7 +61,7 @@ function ClientDashboard() {
           
           {/* HEADER */}
           <div style={{ marginBottom: "1.5rem" }}>
-            <h1>Welcome Back!</h1>
+            <h1>Welcome {user?.email || "..."}</h1>
             <p>
               Manage your pets, book appointments, and stay updated with their health.
             </p>

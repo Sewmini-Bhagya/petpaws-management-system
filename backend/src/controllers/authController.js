@@ -43,19 +43,19 @@ exports.registerUser = async (req, res) => {
 
     const user_id = result.insertId;
 
-    // CREATE CLIENT PROFILE
-    await db.promise().query(
-      'INSERT INTO clients (user_id, created_at) VALUES (?, NOW())',
-      [user_id]
+    const token = jwt.sign(
+      {
+        user_id: user_id,
+        role_id: roleId
+      },
+      process.env.JWT_SECRET,
+      { expiresIn: '1d' }
     );
 
-    await sendEmail(
-      email,
-      'Welcome to PetPaws 🐾',
-      'Your account has been created successfully!'
-    );
-
-    res.status(201).json({ message: 'User registered as CLIENT' });
+    res.status(201).json({
+      message: 'User registered successfully',
+      token
+    });
 
 
   } catch (error) {
@@ -105,4 +105,67 @@ exports.loginUser = (req, res) => {
       });
     }
   );
+};
+
+// FORGOT PASSWORD
+exports.forgotPassword = async (req, res) => {
+  const { email } = req.body;
+
+  try {
+    const [users] = await db.promise().query(
+      "SELECT * FROM users WHERE email = ?",
+      [email]
+    );
+
+    if (users.length === 0) {
+      return res.status(404).json({ message: "User not found" });
+    }
+
+    const user = users[0];
+
+    // create reset token 
+    const resetToken = jwt.sign(
+      { user_id: user.user_id },
+      process.env.JWT_SECRET,
+      { expiresIn: "10m" }
+    );
+
+    const resetLink = `http://localhost:5173/reset-password/${resetToken}`;
+
+    // send email
+    await sendEmail(
+      email,
+      "Reset your password 🔐",
+      `Click here to reset your password:\n${resetLink}`
+    );
+
+    res.json({ message: "Reset link sent to email" });
+
+  } catch (error) {
+    console.error(error);
+    res.status(500).json({ message: "Server error" });
+  }
+};
+
+// RESET PASSWORD
+
+exports.resetPassword = async (req, res) => {
+  const { token, newPassword } = req.body;
+
+  try {
+    // verify token
+    const decoded = jwt.verify(token, process.env.JWT_SECRET);
+
+    const hashedPassword = await bcrypt.hash(newPassword, 10);
+
+    await db.promise().query(
+      "UPDATE users SET password_hash = ? WHERE user_id = ?",
+      [hashedPassword, decoded.user_id]
+    );
+
+    res.json({ message: "Password reset successful" });
+
+  } catch (error) {
+    return res.status(400).json({ message: "Invalid or expired token" });
+  }
 };

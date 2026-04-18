@@ -80,7 +80,7 @@ const card = {
 
 const left = {
   flex: 1,
-  background: "#F3F4F6",
+  background: "#cbd5c0",
   display: "flex",
   flexDirection: "column",
   justifyContent: "center",

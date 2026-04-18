@@ -1,6 +1,7 @@
 import { BrowserRouter as Router, Routes, Route } from "react-router-dom";
 
 import { AuthProvider } from "./context/AuthProvider";
+import ProtectedRoute from "./routes/ProtectedRoute";
 
 import Home from "./pages/Home";
 import Signup from "./pages/auth/Signup";
@@ -15,6 +16,11 @@ import PetProfile from "./pages/client/PetProfile";
 import AddPet from "./pages/client/AddPet";
 import MedicalHistory from "./pages/client/MedicalHistory";
 import MedicalRecords from "./pages/client/MedicalRecords";
+import Services from "./pages/Services";
+import About from "./pages/About";
+import CreateProfile from "./pages/client/CreateProfile";
+import ForgotPassword from "./pages/auth/ForgotPassword";
+import ResetPassword from "./pages/auth/ResetPassword";
 
 function App() {
   return (
@@ -22,11 +28,24 @@ function App() {
       <Router>
         <Routes>
 
+          <Route
+            path="/client"
+            element={
+              <ProtectedRoute>
+                <ClientDashboard />
+              </ProtectedRoute>
+            }
+          />
+
           {/* PUBLIC */}
           <Route path="/" element={<Home />} />
           <Route path="/signup" element={<Signup />} />
           <Route path="/login" element={<Login />} />
           <Route path="/contact" element={<Contact />} />
+          <Route path="/about" element={<About />} />
+          <Route path="/services" element={<Services />} />
+          <Route path="/forgot-password" element={<ForgotPassword />} />
+          <Route path="/reset-password/:token" element={<ResetPassword />} />
 
           {/* CLIENT */}
           <Route path="/client" element={<ClientDashboard />} />
@@ -38,6 +57,7 @@ function App() {
           <Route path="/pets/:id" element={<PetProfile />} />
           <Route path="/pets/:id/history" element={<MedicalHistory />} />
           <Route path="/pets/:id/records" element={<MedicalRecords />} />
+          <Route path="/create-profile/:token" element={<CreateProfile />} />
 
         </Routes>
       </Router>

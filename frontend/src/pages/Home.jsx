@@ -1,6 +1,14 @@
+import { useNavigate } from "react-router-dom";
 import homeImg from "../assets/home.jpeg";
+import Footer from "../components/Footer";
+import { useEffect } from "react";
 
 function Home() {
+  const navigate = useNavigate();
+  useEffect(() => {
+      window.scrollTo(0, 0);
+      }, []);
+
   return (
     <div style={container}>
       
@@ -9,8 +17,13 @@ function Home() {
         <div style={logo}>Pet Paws 🐾</div>
 
         <div style={navLinks}>
-          <button style={loginBtn}>Login</button>
-          <button style={signupBtn}>Signup</button>
+          <button style={loginBtn} onClick={() => navigate("/login")}>
+            Login
+          </button>
+
+        <button style={signupBtn} onClick={() => navigate("/signup")}>
+          Signup
+        </button>
         </div>
       </div>
 
@@ -31,7 +44,9 @@ function Home() {
 
           {/* BUTTONS */}
           <div style={btnRow}>
-            <button style={primaryBtn}>Book Appointment</button>
+            <button style={primaryBtn} onClick={() => navigate("/signup")}>
+              Book Appointment
+            </button>
             <button
                 style={secondaryBtn}
                 onClick={() =>
@@ -87,53 +102,52 @@ function Home() {
           <img src={homeImg} alt="pet" style={heroImg} />
 
           <div style={imageButtons}>
-            <button style={primaryBtn}>Book Appointment</button>
-            <button style={secondaryBtn}>Pet Care Hub</button>
-            <button style={secondaryBtn}>Contact Us</button>
+            <button style={primaryBtn} onClick={() => navigate("/signup")}>
+              Book Appointment
+            </button>
+
+            <button style={secondaryBtn} onClick={() => navigate("/care-hub")}>
+              Pet Care Hub
+            </button>
+
+            <button style={secondaryBtn} onClick={() => navigate("/contact")}>
+              Contact Us
+            </button>
           </div>
         </div>
 
       </div>
 
             <div id="learn-more" style={learnSection}>
-        <h2 style={{ color: "#6B8F71" }}>Why Choose PetPaws?</h2>
+        <div style={whySection}>
+  
+  <h2 style={whyTitle}>Why Choose Us? 🐾</h2>
 
-        <p>
-            We provide trusted veterinary care with modern facilities, 
-            experienced vets, and personalized treatment for your pets.
-        </p>
+  <div style={whyCard}>
+    <p>
+      At <strong>Pet Paws Animal Hospital</strong>, we know your pet is family. 
+      Every visit is handled with <strong>patience, kindness, and genuine care</strong>.
+    </p>
 
-        <p>
-            From routine checkups to advanced treatments, your pet’s health 
-            is always our priority.
-        </p>
+    <p>
+      Our team is experienced, and more importantly, we truly care about what’s best for your pet. 
+      We use <strong>modern equipment</strong> and thoughtful approaches to ensure safe and reliable treatment.
+    </p>
+
+    <p>
+      We keep everything <strong>simple, honest, and stress-free</strong> for you... 
+      from quick appointments to clear advice you can trust.
+    </p>
+  </div>
+
+  <div style={highlight}>
+    From routine checkups to advanced treatments, your pet’s health is always our priority ❤️
+  </div>
+
+</div>
         </div>
 
-      {/* FOOTER */}
-      <div style={footer}>
-        <div>
-          <h4>Pet Paws Animal Hospital</h4>
-          <p style={footerText}>Little Rome, Mudukatuwa, Marawila</p>
-          <p style={footerText}>Tel: 0766166538 / 0701100438</p>
-          <p style={footerText}>Email: petpawsanimalhospital@gmail.com</p>
-        </div>
-
-        <div>
-          <h4>Quick Links</h4>
-          <p style={footerText}>Home</p>
-          <p style={footerText}>About Us</p>
-          <p style={footerText}>Services</p>
-          <p style={footerText}>Book Appointment</p>
-          <p style={footerText}>Contact Us</p>
-        </div>
-
-        <div>
-          <h4>Open Hours</h4>
-          <p style={footerText}>Mon - Sat</p>
-          <p style={footerText}>9 AM - 9 PM</p>
-        </div>
-      </div>
-
+       <Footer />
     </div>
   );
 }
@@ -149,14 +163,14 @@ const container = {
 const navbar = {
   background: "#6B8F71",
   color: "white",
-  padding: "1rem 2rem",
+  padding: "2rem 2rem",
   display: "flex",
   justifyContent: "space-between",
   alignItems: "center"
 };
 
 const logo = {
-  fontSize: "1.5rem",
+  fontSize: "2.5rem",
   fontWeight: "bold"
 };
 
@@ -167,9 +181,9 @@ const navLinks = {
 };
 
 const loginBtn = {
-  background: "#FFFFFF",
+  background: "#fff",
   border: "none",
-  padding: "0.5rem 1rem",
+  padding: "0.7rem 1rem",
   borderRadius: "8px",
   cursor: "pointer"
 };
@@ -177,7 +191,7 @@ const loginBtn = {
 const signupBtn = {
   background: "#fff",
   border: "none",
-  padding: "0.5rem 1rem",
+  padding: "0.7rem 1rem",
   borderRadius: "8px",
   cursor: "pointer"
 };
@@ -210,8 +224,8 @@ const heroDesc = {
 };
 
 const learnSection = {
-  padding: "3rem 2rem",
-  background: "#ffffff",
+  padding: "0rem 0rem",
+  background: "#fff",
   textAlign: "center",
   marginTop: "2rem",
   borderRadius: "16px"
@@ -285,7 +299,7 @@ const heroImg = {
 
 const imageButtons = {
   position: "absolute",
-  bottom: "20px",
+  bottom: "-40px",
   left: "50%",
   transform: "translateX(-50%)", 
   background: "white",
@@ -296,20 +310,32 @@ const imageButtons = {
   boxShadow: "0 4px 12px rgba(0,0,0,0.1)"
 };
 
-const footerText = {
-  margin: "2px 0" 
+const whySection = {
+  padding: "rem 2rem",
+  textAlign: "center",
+  background: "#F7F9F7"
 };
 
-const footer = {
-  fontFamily: "times-new-roman",
-  background: "#6B8F71",
-  color: "white",
-  display: "flex",
-  justifyContent: "space-around",
-  padding: "1rem",
-  marginTop: "2rem",
-  textAlign: "center",   
-  lineHeight: "1.1"
+const whyTitle = {
+  color: "#6B8F71",
+  marginBottom: "1rem"
+};
+
+const whyCard = {
+  background: "#fff",
+  padding: "1.8rem",
+  borderRadius: "16px",
+  maxWidth: "700px",
+  margin: "0 auto",
+  boxShadow: "0 6px 20px rgba(0,0,0,0.05)",
+  lineHeight: "1.6",
+  color: "#444"
+};
+
+const highlight = {
+  marginTop: "0.5rem",
+  fontWeight: "500",
+  color: "#6B8F71"
 };
 
 export default Home;
