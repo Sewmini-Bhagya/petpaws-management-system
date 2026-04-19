@@ -23,23 +23,23 @@ exports.createAppointment = async (req, res) => {
       });
     }
 
-    const start = new Date(appointment_start);
+    const start = dayjs(appointment_start).tz("Asia/Colombo");
 
-    if (isNaN(start)) {
+    if (!start.isValid()) {
       return res.status(400).json({
         message: 'Invalid date format'
       });
     }
 
     // No Sundays
-    if (start.getDay() === 0) {
+    if (start.day() === 0) {
       return res.status(400).json({
         message: 'Clinic is closed on Sundays'
       });
     }
 
     // GET CLIENT
-    const [clients] = await db.promise().query(
+    const [clients] = await db.query(
       'SELECT client_id FROM clients WHERE user_id = ?',
       [userId]
     );
@@ -53,7 +53,7 @@ exports.createAppointment = async (req, res) => {
     const client_id = clients[0].client_id;
 
     // VALIDATE PET OWNERSHIP
-    const [pets] = await db.promise().query(
+    const [pets] = await db.query(
       'SELECT pet_id FROM pets WHERE pet_id = ? AND client_id = ?',
       [pet_id, client_id]
     );
@@ -65,7 +65,7 @@ exports.createAppointment = async (req, res) => {
     }
 
     // GET SERVICES
-    const [services] = await db.promise().query(
+    const [services] = await db.query(
       `SELECT service_id, duration_minutes, resource_type, required_specialization
        FROM services
        WHERE service_id IN (${service_ids.map(() => '?').join(',')})`,
@@ -96,11 +96,14 @@ exports.createAppointment = async (req, res) => {
       0
     );
 
-    const end = new Date(start.getTime() + totalDuration * 60000);
+    const end = start.add(totalDuration, 'minute');
 
     // TIME VALIDATION
-    const startMinutes = start.getHours() * 60 + start.getMinutes();
-    const endMinutes = end.getHours() * 60 + end.getMinutes();
+    const startMinutes = start.hour() * 60 + start.minute();
+    const endMinutes = end.hour() * 60 + end.minute();
+
+    const formattedStartDB = start.format('YYYY-MM-DD HH:mm:ss');
+    const formattedEndDB = end.format('YYYY-MM-DD HH:mm:ss');
 
     const openTime = 9 * 60;
     const closeTime = 21 * 60;
@@ -112,13 +115,13 @@ exports.createAppointment = async (req, res) => {
     }
 
     // PET OVERLAP CHECK
-    const [petOverlap] = await db.promise().query(
+    const [petOverlap] = await db.query(
       `SELECT COUNT(*) AS count
        FROM appointments
        WHERE pet_id = ?
        AND appointment_start < ?
        AND appointment_end > ?`,
-      [pet_id, end, start]
+      [pet_id, formattedEndDB, formattedStartDB]
     );
 
     if (petOverlap[0].count > 0) {
@@ -128,7 +131,7 @@ exports.createAppointment = async (req, res) => {
     }
 
     // GET RESOURCE
-    const [resource] = await db.promise().query(
+    const [resource] = await db.query(
       `SELECT resource_id, capacity
        FROM resources
        WHERE resource_type = ?`,
@@ -145,14 +148,14 @@ exports.createAppointment = async (req, res) => {
     const capacity = resource[0].capacity;
 
     // RESOURCE AVAILABILITY CHECK
-    const [resourceUsage] = await db.promise().query(
+    const [resourceUsage] = await db.query(
       `SELECT COUNT(*) AS count
        FROM appointment_resources ar
        JOIN appointments a ON ar.appointment_id = a.appointment_id
        WHERE ar.resource_id = ?
        AND a.appointment_start < ?
        AND a.appointment_end > ?`,
-      [resource_id, end, start]
+      [resource_id, formattedEndDB, formattedStartDB]
     );
 
     if (resourceUsage[0].count >= capacity) {
@@ -183,7 +186,7 @@ exports.createAppointment = async (req, res) => {
     let vet_id = null;
 
     if (requiredSpecialization) {
-      const [vets] = await db.promise().query(
+      const [vets] = await db.query(
         `SELECT v.vet_id
         FROM veterinarians v
         WHERE v.specialization = ?
@@ -195,7 +198,7 @@ exports.createAppointment = async (req, res) => {
           AND a.appointment_end > ?
         )
         LIMIT 1`,
-        [requiredSpecialization, end, start]
+        [requiredSpecialization, formattedEndDB, formattedStartDB]
       );
 
       if (vets.length === 0) {
@@ -208,11 +211,11 @@ exports.createAppointment = async (req, res) => {
     }
 
     // INSERT APPOINTMENT
-    const [result] = await db.promise().query(
+    const [result] = await db.query(
       `INSERT INTO appointments
        (client_id, pet_id, appointment_start, appointment_end, status_id, created_at)
        VALUES (?, ?, ?, ?, 1, NOW())`,
-      [client_id, pet_id, start, end]
+      [client_id, pet_id, formattedStartDB, formattedEndDB]
     );
 
     const appointment_id = result.insertId;
@@ -223,14 +226,14 @@ exports.createAppointment = async (req, res) => {
       service_id
     ]);
 
-    await db.promise().query(
+    await db.query(
       `INSERT INTO appointment_services (appointment_id, service_id)
        VALUES ?`,
       [serviceValues]
     );
 
     // ASSIGN RESOURCE
-    await db.promise().query(
+    await db.query(
       `INSERT INTO appointment_resources (appointment_id, resource_id)
        VALUES (?, ?)`,
       [appointment_id, resource_id]
@@ -238,7 +241,7 @@ exports.createAppointment = async (req, res) => {
     
     // ASSIGN VET
     if (vet_id) {
-      await db.promise().query(
+      await db.query(
         `INSERT INTO appointment_assignments (appointment_id, vet_id)
         VALUES (?, ?)`,
         [appointment_id, vet_id]
@@ -246,17 +249,15 @@ exports.createAppointment = async (req, res) => {
     }
 
     // FORMAT TIME (timezone safe)
-    const formattedStart = dayjs(start)
-      .tz('Asia/Colombo')
+    const formattedStart = start.tz('Asia/Colombo')
       .format('YYYY-MM-DD HH:mm:ss');
 
-    const formattedEnd = dayjs(end)
-      .tz('Asia/Colombo')
+    const formattedEnd = end.tz('Asia/Colombo')
       .format('HH:mm:ss');
 
     
     // GET USER EMAIL
-    const [users] = await db.promise().query(
+    const [users] = await db.query(
       'SELECT email FROM users WHERE user_id = ?',
       [userId]
     );
@@ -292,7 +293,7 @@ exports.addPerformedService = async (req, res) => {
 
   try {
     // CHECK IF USER IS VET OR RECEPTIONIST
-    const [users] = await db.promise().query(
+    const [users] = await db.query(
       'SELECT role_id FROM users WHERE user_id = ?',
       [userId]
     );
@@ -304,7 +305,7 @@ exports.addPerformedService = async (req, res) => {
     const role_id = users[0].role_id;
 
     // get role name
-    const [roles] = await db.promise().query(
+    const [roles] = await db.query(
       'SELECT role_name FROM roles WHERE role_id = ?',
       [role_id]
     );
@@ -318,7 +319,7 @@ exports.addPerformedService = async (req, res) => {
     }
     
     // CHECK APPOINTMENT EXISTS
-    const [appointments] = await db.promise().query(
+    const [appointments] = await db.query(
       'SELECT appointment_id FROM appointments WHERE appointment_id = ?',
       [appointment_id]
     );
@@ -330,7 +331,7 @@ exports.addPerformedService = async (req, res) => {
     }
 
     // PREVENT DUPLICATES
-    const [existing] = await db.promise().query(
+    const [existing] = await db.query(
       `SELECT * FROM appointment_performed_services
        WHERE appointment_id = ? AND service_id = ?`,
       [appointment_id, service_id]
@@ -343,7 +344,7 @@ exports.addPerformedService = async (req, res) => {
     }
 
     // CHECK IF INVOICE EXISTS
-    const [invoices] = await db.promise().query(
+    const [invoices] = await db.query(
       'SELECT * FROM invoices WHERE appointment_id = ?',
       [appointment_id]
     );
@@ -355,7 +356,7 @@ exports.addPerformedService = async (req, res) => {
     }
 
     // INSERT
-    await db.promise().query(
+    await db.query(
       `INSERT INTO appointment_performed_services 
        (appointment_id, service_id, added_by)
        VALUES (?, ?, ?)`,
@@ -379,7 +380,7 @@ exports.getMyAppointments = async (req, res) => {
   const userId = req.user.user_id;
 
   try {
-    const [appointments] = await db.promise().query(
+    const [appointments] = await db.query(
       `SELECT a.*
        FROM appointments a
        JOIN clients c ON a.client_id = c.client_id
@@ -395,5 +396,39 @@ exports.getMyAppointments = async (req, res) => {
     res.status(500).json({
       message: 'Server error'
     });
+  }
+};
+
+// GET AVAILABLE SLOTS
+exports.getAvailableSlots = async (req, res) => {
+  const { date } = req.query;
+
+  try {
+    // generate time slots (9AM–9PM)
+    const slots = [];
+
+    for (let hour = 9; hour < 21; hour++) {
+      const time = `${hour.toString().padStart(2, "0")}:00:00`;
+
+      const start = `${date} ${time}`;
+
+      const [count] = await db.query(
+        `SELECT COUNT(*) AS count
+         FROM appointments
+         WHERE appointment_start = ?`,
+        [start]
+      );
+
+      slots.push({
+        time,
+        available: count[0].count < 6 // beds limit
+      });
+    }
+
+    res.json(slots);
+
+  } catch (error) {
+    console.error(error);
+    res.status(500).json({ message: "Server error" });
   }
 };

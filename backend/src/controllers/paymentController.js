@@ -17,7 +17,7 @@ exports.addPayment = async (req, res) => {
     }
 
     // GET INVOICE
-    const [invoices] = await db.promise().query(
+    const [invoices] = await db.query(
       'SELECT total_amount FROM invoices WHERE invoice_id = ?',
       [invoice_id]
     );
@@ -31,7 +31,7 @@ exports.addPayment = async (req, res) => {
     const total_amount = parseFloat(invoices[0].total_amount);
 
     // GET EXISTING PAYMENTS
-    const [payments] = await db.promise().query(
+    const [payments] = await db.query(
       'SELECT SUM(amount) AS paid FROM payments WHERE invoice_id = ?',
       [invoice_id]
     );
@@ -48,7 +48,7 @@ exports.addPayment = async (req, res) => {
     }
 
     // INSERT PAYMENT
-    await db.promise().query(
+    await db.query(
       `INSERT INTO payments (invoice_id, payment_method, payment_date, amount)
        VALUES (?, ?, NOW(), ?)`,
       [invoice_id, payment_method, amount]
@@ -69,13 +69,13 @@ exports.addPayment = async (req, res) => {
 
 
     // UPDATE INVOICE STATUS
-    await db.promise().query(
+    await db.query(
       'UPDATE invoices SET status = ? WHERE invoice_id = ?',
       [status, invoice_id]
     );
 
     // GET USER EMAIL
-    const [users] = await db.promise().query(
+    const [users] = await db.query(
       `SELECT u.email
       FROM users u
       JOIN clients c ON u.user_id = c.user_id
@@ -124,7 +124,7 @@ exports.payhereInit = async (req, res) => {
 
   try {
     // GET INVOICE
-    const [invoices] = await db.promise().query(
+    const [invoices] = await db.query(
       `SELECT i.invoice_id, i.total_amount, u.email
        FROM invoices i
        JOIN clients c ON i.client_id = c.client_id
@@ -191,7 +191,7 @@ exports.payhereNotify = async (req, res) => {
     const invoice_id = parseInt(order_id);
 
     // Check invoice
-    const [invoices] = await db.promise().query(
+    const [invoices] = await db.query(
       `SELECT i.invoice_id, i.total_amount, i.status, u.email
        FROM invoices i
        JOIN clients c ON i.client_id = c.client_id
@@ -217,14 +217,14 @@ exports.payhereNotify = async (req, res) => {
       const amount = parseFloat(payhere_amount);
 
       // Insert payment
-      await db.promise().query(
+      await db.query(
         `INSERT INTO payments (invoice_id, payment_method, payment_date, amount)
          VALUES (?, 'PAYHERE', NOW(), ?)`,
         [invoice_id, amount]
       );
 
       // Update invoice status
-      await db.promise().query(
+      await db.query(
         'UPDATE invoices SET status = ? WHERE invoice_id = ?',
         ['PAID', invoice_id]
       );

@@ -64,7 +64,7 @@ function ClientDashboard() {
               localStorage.removeItem("token"); 
               navigate("/login");
               }}
-            >Logout ⏻
+            >Logout
             </p>
           </div>
         </div>
@@ -92,7 +92,7 @@ function ClientDashboard() {
             <div style={cardsGrid}>
               <div style={card}>
                 <h3>Queue</h3>
-                <p>Position: 3</p>
+                <p>Position: 1</p>
               </div>
 
               <div style={card}>

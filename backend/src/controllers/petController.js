@@ -7,7 +7,7 @@ exports.createPet = async (req, res) => {
 
   try {
     // Get client_id from user_id
-    const [clients] = await db.promise().query(
+    const [clients] = await db.query(
       'SELECT client_id FROM clients WHERE user_id = ?',
       [userId]
     );
@@ -19,7 +19,7 @@ exports.createPet = async (req, res) => {
     const clientId = clients[0].client_id;
 
     // Insert pet
-    await db.promise().query(
+    await db.query(
       `INSERT INTO pets (client_id, pet_name, date_of_birth, species, breed, gender)
        VALUES (?, ?, ?, ?, ?, ?)`,
       [clientId, pet_name, date_of_birth, species, breed, gender]
@@ -39,7 +39,7 @@ exports.getMyPets = async (req, res) => {
   const userId = req.user.user_id;
 
   try {
-    const [pets] = await db.promise().query(
+    const [pets] = await db.query(
       `SELECT p.* 
        FROM pets p
        JOIN clients c ON p.client_id = c.client_id
@@ -64,7 +64,7 @@ exports.getPetById = async (req, res) => {
   const petId = req.params.id;
 
   try {
-    const [pets] = await db.promise().query(
+    const [pets] = await db.query(
       `SELECT p.* 
        FROM pets p
        JOIN clients c ON p.client_id = c.client_id
@@ -95,7 +95,7 @@ exports.updatePet = async (req, res) => {
 
   try {
     // Check ownership
-    const [pets] = await db.promise().query(
+    const [pets] = await db.query(
       `SELECT p.pet_id 
        FROM pets p
        JOIN clients c ON p.client_id = c.client_id
@@ -108,7 +108,7 @@ exports.updatePet = async (req, res) => {
     }
 
     // Update
-    await db.promise().query(
+    await db.query(
       `UPDATE pets 
        SET pet_name=?, date_of_birth=?, species=?, breed=?, gender=? 
        WHERE pet_id=?`,
@@ -133,7 +133,7 @@ exports.deletePet = async (req, res) => {
 
   try {
     // Check ownership
-    const [pets] = await db.promise().query(
+    const [pets] = await db.query(
       `SELECT p.pet_id 
        FROM pets p
        JOIN clients c ON p.client_id = c.client_id
@@ -146,7 +146,7 @@ exports.deletePet = async (req, res) => {
     }
 
     // Delete
-    await db.promise().query(
+    await db.query(
       'DELETE FROM pets WHERE pet_id = ?',
       [petId]
     );

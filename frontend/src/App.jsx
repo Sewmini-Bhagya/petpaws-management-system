@@ -21,6 +21,10 @@ import About from "./pages/About";
 import CreateProfile from "./pages/client/CreateProfile";
 import ForgotPassword from "./pages/auth/ForgotPassword";
 import ResetPassword from "./pages/auth/ResetPassword";
+import AdminDashboard from "./pages/admin/AdminDashboard";
+import ReceptionistDashboard from "./pages/receptionist/ReceptionistDashboard";
+import VetDashboard from "./pages/vet/VetDashboard";
+import UserManagement from "./pages/admin/UserManagement";
 
 function App() {
   return (
@@ -58,6 +62,16 @@ function App() {
           <Route path="/pets/:id/history" element={<MedicalHistory />} />
           <Route path="/pets/:id/records" element={<MedicalRecords />} />
           <Route path="/create-profile" element={<CreateProfile />} />
+
+          {/* ADMIN */}
+          <Route path="/admin" element={<AdminDashboard />} />
+          <Route path="/um" element={<UserManagement />} />
+
+          {/* RECEPTIONIST */}
+          <Route path="/recep" element={<ReceptionistDashboard />} />
+
+          {/* VET */}
+          <Route path="/vet" element={<VetDashboard />} />
 
         </Routes>
       </Router>

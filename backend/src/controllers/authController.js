@@ -105,7 +105,10 @@ exports.forgotPassword = async (req, res) => {
 
   try {
     const [users] = await db.query(
-      "SELECT * FROM users WHERE email = ?",
+      `SELECT u.*, up.first_name 
+       FROM users u
+       LEFT JOIN user_profiles up ON u.user_id = up.user_id
+       WHERE u.email = ?`,
       [email]
     );
 
@@ -115,7 +118,6 @@ exports.forgotPassword = async (req, res) => {
 
     const user = users[0];
 
-    // create reset token 
     const resetToken = jwt.sign(
       { user_id: user.user_id },
       process.env.JWT_SECRET,
@@ -124,11 +126,25 @@ exports.forgotPassword = async (req, res) => {
 
     const resetLink = `http://localhost:5173/reset-password/${resetToken}`;
 
-    // send email
+    // fallback if no profile yet
+    const name = user.first_name || "there";
+
     await sendEmail(
       email,
-      "Reset your password 🔐",
-      `Click here to reset your password:\n${resetLink}`
+      "Password Reset Request",
+      `Dear ${name},
+
+We received a request to reset your password.
+
+Please click the link below to set a new password:
+${resetLink}
+
+This link will expire in 10 minutes.
+
+If you did not request this, please ignore this email.
+
+Warm regards,  
+PetPaws Animal Hospital`
     );
 
     res.json({ message: "Reset link sent to email" });

@@ -8,7 +8,7 @@ exports.generateInvoice = async (req, res) => {
 
   try {
     // CHECK APPOINTMENT EXISTS
-    const [appointments] = await db.promise().query(
+    const [appointments] = await db.query(
       'SELECT client_id FROM appointments WHERE appointment_id = ?',
       [appointment_id]
     );
@@ -22,7 +22,7 @@ exports.generateInvoice = async (req, res) => {
     const client_id = appointments[0].client_id;
 
     // GET PERFORMED SERVICES
-    const [services] = await db.promise().query(
+    const [services] = await db.query(
       `SELECT s.service_id, s.service_name, s.price
        FROM appointment_performed_services aps
        JOIN services s ON aps.service_id = s.service_id
@@ -45,7 +45,7 @@ exports.generateInvoice = async (req, res) => {
     const formattedTotal = total_amount.toFixed(2);
 
     // CREATE INVOICE
-    const [invoiceResult] = await db.promise().query(
+    const [invoiceResult] = await db.query(
       `INSERT INTO invoices 
        (client_id, appointment_id, invoice_date, total_amount)
        VALUES (?, ?, NOW(), ?)`,
@@ -62,14 +62,14 @@ exports.generateInvoice = async (req, res) => {
       service.price
     ]);
 
-    await db.promise().query(
+    await db.query(
       `INSERT INTO invoice_items (invoice_id, service_id, description, amount)
        VALUES ?`,
       [invoiceItems]
     );
 
     // GET USER EMAIL
-    const [users] = await db.promise().query(
+    const [users] = await db.query(
       `SELECT u.email
       FROM users u
       JOIN clients c ON u.user_id = c.user_id
@@ -107,7 +107,7 @@ exports.getInvoice = async (req, res) => {
 
   try {
     // GET INVOICE
-    const [invoices] = await db.promise().query(
+    const [invoices] = await db.query(
       `SELECT invoice_id, client_id, appointment_id, invoice_date, total_amount, status
        FROM invoices
        WHERE invoice_id = ?`,
@@ -123,7 +123,7 @@ exports.getInvoice = async (req, res) => {
     const invoice = invoices[0];
 
     // GET ITEMS
-    const [items] = await db.promise().query(
+    const [items] = await db.query(
       `SELECT service_id, description, amount
        FROM invoice_items
        WHERE invoice_id = ?`,
@@ -131,7 +131,7 @@ exports.getInvoice = async (req, res) => {
     );
 
     // GET PAYMENTS
-    const [payments] = await db.promise().query(
+    const [payments] = await db.query(
       `SELECT payment_method, amount, payment_date
        FROM payments
        WHERE invoice_id = ?`,

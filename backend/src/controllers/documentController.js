@@ -10,7 +10,7 @@ exports.uploadDocument = async (req, res) => {
 
   try {
     // Check ownership
-    const [pets] = await db.promise().query(
+    const [pets] = await db.query(
       `SELECT p.pet_id 
        FROM pets p
        JOIN clients c ON p.client_id = c.client_id
@@ -27,7 +27,7 @@ exports.uploadDocument = async (req, res) => {
     }
 
     // Save in DB
-    await db.promise().query(
+    await db.query(
       `INSERT INTO pet_documents (pet_id, document_type, file_path, uploaded_at)
        VALUES (?, ?, ?, NOW())`,
       [petId, document_type, file.path]
@@ -49,7 +49,7 @@ exports.getPetDocuments = async (req, res) => {
 
   try {
     // ownership check
-    const [pets] = await db.promise().query(
+    const [pets] = await db.query(
       `SELECT p.pet_id 
        FROM pets p
        JOIN clients c ON p.client_id = c.client_id
@@ -61,7 +61,7 @@ exports.getPetDocuments = async (req, res) => {
       return res.status(403).json({ message: 'Unauthorized' });
     }
 
-    const [docs] = await db.promise().query(
+    const [docs] = await db.query(
       'SELECT * FROM pet_documents WHERE pet_id = ?',
       [petId]
     );

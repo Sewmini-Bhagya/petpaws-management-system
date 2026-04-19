@@ -2,6 +2,7 @@ import { useState } from "react";
 import { useNavigate } from "react-router-dom";
 import API from "../../api/axios";
 import createImg from "../../assets/create.jpeg";
+import bgImg from "../../assets/background.jpeg";
 
 function CreateProfile() {
   const navigate = useNavigate();
@@ -116,7 +117,10 @@ const overlay = {
   display: "flex",
   justifyContent: "center",
   alignItems: "center",
-  background: "rgba(0,0,0,0.08)"
+  backgroundImage: `url(${bgImg})`,
+  backgroundSize: "cover",
+  backgroundPosition: "center",
+  position: "relative"
 };
 
 const card = {

@@ -1,11 +1,16 @@
+import bgImg from "../assets/background.jpeg";
+
 export const overlay = {
   height: "100vh",
-  width: "100%",
   display: "flex",
   justifyContent: "center",
   alignItems: "center",
-  background: "rgba(0,0,0,0.08)"
+  backgroundImage: `url(${bgImg})`,
+  backgroundSize: "cover",
+  backgroundPosition: "center",
+  position: "relative"
 };
+
 
 export const card = {
   display: "flex",

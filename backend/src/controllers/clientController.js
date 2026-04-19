@@ -1,9 +1,11 @@
+const db = require('../config/db');
+
 exports.getDashboard = async (req, res) => {
   const userId = req.user.user_id;
 
   try {
     // GET CLIENT ID
-    const [clients] = await db.promise().query(
+    const [clients] = await db.query(
       "SELECT client_id FROM clients WHERE user_id = ?",
       [userId]
     );
@@ -15,13 +17,13 @@ exports.getDashboard = async (req, res) => {
     const client_id = clients[0].client_id;
 
     // PET COUNT
-    const [pets] = await db.promise().query(
+    const [pets] = await db.query(
       "SELECT COUNT(*) AS count FROM pets WHERE client_id = ?",
       [client_id]
     );
 
     // UPCOMING APPOINTMENTS
-    const [appointments] = await db.promise().query(
+    const [appointments] = await db.query(
       `SELECT COUNT(*) AS count
        FROM appointments
        WHERE client_id = ?
@@ -30,7 +32,7 @@ exports.getDashboard = async (req, res) => {
     );
 
     // PENDING PAYMENTS
-    const [payments] = await db.promise().query(
+    const [payments] = await db.query(
       `SELECT COUNT(*) AS count
        FROM invoices
        WHERE client_id = ?

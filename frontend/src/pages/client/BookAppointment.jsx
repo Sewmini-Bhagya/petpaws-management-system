@@ -1,20 +1,82 @@
 import DatePicker from "react-datepicker";
 import "react-datepicker/dist/react-datepicker.css";
-import { useState } from "react";
-
+import { useState, useEffect } from "react";
+import API from "../../api/axios";
 
 function BookAppointment() {
+  const [pets, setPets] = useState([]);
+  const [services, setServices] = useState([]);
+
+  const [selectedPet, setSelectedPet] = useState(null);
+  const [selectedService, setSelectedService] = useState(null);
+
   const [selectedDate, setSelectedDate] = useState(null);
   const [selectedTime, setSelectedTime] = useState("");
-  
-  const timeSlots = [
-    { time: "9:00 AM", available: true },
-    { time: "10:00 AM", available: false },
-    { time: "11:00 AM", available: true },
-    { time: "1:00 PM", available: false },
-    { time: "2:00 PM", available: true },
-    { time: "3:00 PM", available: true }
-  ];
+
+  const [timeSlots, setTimeSlots] = useState([]);
+
+  useEffect(() => {
+    const fetchData = async () => {
+      try {
+        const petsRes = await API.get("/pets");
+        setPets(petsRes.data);
+
+        const servicesRes = await API.get("/services");
+        setServices(servicesRes.data);
+
+      } catch (err) {
+        console.error(err);
+      }
+    };
+
+    fetchData();
+  }, []);
+
+  // FETCH AVAILABLE SLOTS
+  const fetchSlots = async (date) => {
+    try {
+      const formatted = date.toISOString().split("T")[0];
+
+      const res = await API.get(
+        `/appointments/available-slots?date=${formatted}`
+      );
+
+      setTimeSlots(res.data);
+    } catch (err) {
+      console.error(err);
+    }
+  };
+
+  // HANDLE BOOKING
+  const handleBooking = async () => {
+    if (!selectedPet || !selectedService || !selectedDate || !selectedTime) {
+      alert("Fill everything 😭");
+      return;
+    }
+
+    const date = selectedDate.toISOString().split("T")[0];
+    const appointment_start = `${date} ${selectedTime}`;
+
+    try {
+      await API.post("/appointments", {
+        pet_id: selectedPet,
+        appointment_start,
+        service_ids: [selectedService],
+      });
+
+      alert("Appointment booked 🎉");
+
+      // RESET FORM
+      setSelectedPet(null);
+      setSelectedService(null);
+      setSelectedDate(null);
+      setSelectedTime("");
+      setTimeSlots([]);
+
+    } catch (err) {
+      alert(err.response?.data?.message || "Error 😭");
+    }
+  };
 
   return (
     <div style={container}>
@@ -23,125 +85,139 @@ function BookAppointment() {
 
         <div style={form}>
           
-          <label>Pet</label>
-          <select style={input}>
-            <option>Select Pet</option>
-            <option>Windy</option>
-            <option>Max</option>
-          </select>
+          {/* PET SELECTION */}
+          <label>Select Pet</label>
+          <div style={grid}>
+            {pets.map((pet) => (
+              <button
+                key={pet.pet_id}
+                onClick={() => setSelectedPet(pet.pet_id)}
+                style={{
+                  ...selectBtn,
+                  background:
+                    selectedPet === pet.pet_id ? "#6B8F71" : "#fff",
+                  color:
+                    selectedPet === pet.pet_id ? "#fff" : "#1F2937",
+                }}
+              >
+                {pet.pet_name}
+              </button>
+            ))}
+          </div>
 
+          {/* SERVICE */}
           <label>Service</label>
-          <select style={input}>
-            <option>Select Service</option>
-            <option>Consultation</option>
-            <option>Grooming</option>
-            <option>Vaccination</option>
-            <option>Minor Surgery</option>
-            <option>Neutering Surgery</option>
-            <option>Major Surgery</option>
-            <option>Blood Test</option>
-            <option>Hormone Test</option>
-            <option>ECG</option>
-            <option>Dental Scaling</option>
-            <option>Ultrasound Scanning</option>
-            <option>Microchipping</option>
+          <select
+            style={input}
+            value={selectedService || ""}
+            onChange={(e) => setSelectedService(e.target.value)}
+          >
+            <option value="">Select Service</option>
+            {services.map((s) => (
+              <option key={s.service_id} value={s.service_id}>
+                {s.service_name}
+              </option>
+            ))}
           </select>
 
-          <label>Vet</label>
-          <select style={input}>
-            <option>Select Vet</option>
-            <option>Dr. Silva</option>
-            <option>Dr. Perera</option>
-          </select>
-
+          {/* DATE */}
           <label>Date</label>
-
           <DatePicker
             selected={selectedDate}
-            onChange={(date) => setSelectedDate(date)}
-            dateFormat="dd/MM/yyyy"
+            onChange={(date) => {
+              setSelectedDate(date);
+              setSelectedTime("");
+              fetchSlots(date);
+            }}
+            dateFormat="yyyy-MM-dd"
             placeholderText="Select date"
-            style={input}
             customInput={<input style={input} />}
           />
 
+          {/* TIME SLOT */}
           <label>Time Slot</label>
+          <select
+            style={input}
+            disabled={!selectedDate}
+            value={selectedTime}
+            onChange={(e) => setSelectedTime(e.target.value)}
+          >
+            <option value="">Select Time</option>
 
-            <div style={timeGrid}>
             {timeSlots.map((slot) => (
-                <button
+              <option
                 key={slot.time}
+                value={slot.time}
                 disabled={!slot.available}
-                onClick={() => setSelectedTime(slot.time)}
-                style={{
-                    ...timeBtn,
-                    background:
-                    selectedTime === slot.time ? "#6B8F71" : "#fff",
-                    color:
-                    selectedTime === slot.time ? "#fff" : "#1F2937",
-                    opacity: slot.available ? 1 : 0.4,
-                    cursor: slot.available ? "pointer" : "not-allowed"
-                }}
-                >
-                {slot.time}
-                </button>
+              >
+                {slot.time} {slot.available ? "" : "(Booked)"}
+              </option>
             ))}
-            </div>
+          </select>
 
-          <button style={mainBtn}>Confirm Booking</button>
+          {/* INFO */}
+          <p style={{ fontSize: "0.9rem", color: "#666" }}>
+            Vet will be assigned automatically
+          </p>
+
+          {/* BUTTON */}
+          <button style={mainBtn} onClick={handleBooking}>
+            Confirm Booking
+          </button>
         </div>
       </div>
     </div>
   );
 }
 
+/* 🎨 STYLES */
+
 const container = {
   height: "100vh",
   display: "flex",
   justifyContent: "center",
   alignItems: "center",
-  background: "#F7F9F7"
-};
-
-const timeGrid = {
-  display: "grid",
-  gridTemplateColumns: "1fr 1fr 1fr",
-  gap: "0.6rem",
-  marginTop: "0.5rem"
-};
-
-const timeBtn = {
-  padding: "0.6rem",
-  borderRadius: "10px",
-  border: "1px solid #6B8F71",
-  background: "#fff",
-  transition: "0.2s ease"
+  background: "#F7F9F7",
 };
 
 const card = {
-  width: "400px",
+  width: "420px",
   background: "#fff",
   padding: "2rem",
   borderRadius: "16px",
-  boxShadow: "0 10px 25px rgba(0,0,0,0.08)"
+  boxShadow: "0 10px 25px rgba(0,0,0,0.08)",
 };
 
 const title = {
   color: "#6B8F71",
   marginBottom: "1.5rem",
-  textAlign: "center"
+  textAlign: "center",
 };
 
 const form = {
   display: "flex",
   flexDirection: "column",
-  gap: "0.8rem"
+  gap: "0.8rem",
 };
 
 const input = {
   padding: "0.7rem",
   borderRadius: "8px",
-  border: "1px solid #ccc"
+  border: "1px solid #ccc",
+};
+
+const grid = {
+  display: "grid",
+  gridTemplateColumns: "1fr 1fr",
+  gap: "0.6rem",
+};
+
+const selectBtn = {
+  padding: "0.6rem",
+  borderRadius: "10px",
+  border: "1px solid #6B8F71",
+  background: "#fff",
+  cursor: "pointer",
 };
 
 const mainBtn = {
@@ -151,7 +227,7 @@ const mainBtn = {
   color: "white",
   border: "none",
   borderRadius: "10px",
-  cursor: "pointer"
+  cursor: "pointer",
 };
 
 export default BookAppointment;

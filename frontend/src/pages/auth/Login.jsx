@@ -5,6 +5,7 @@ import loginImg from "../../assets/login.jpeg";
 import API from "../../api/axios";
 
 import {
+  overlay,
   form,
   input,
   forgot,
@@ -18,11 +19,11 @@ import {
 function Login() {
   const navigate = useNavigate();
 
-  // ✅ STATE
+  // STATE
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
 
-  // ✅ LOGIN FUNCTION
+  // LOGIN FUNCTION
   const handleLogin = async () => {
     try {
       const res = await API.post("/auth/login", {
@@ -32,10 +33,10 @@ function Login() {
 
       console.log("LOGIN SUCCESS:", res.data);
 
-      // ✅ save token
+      // save token
       localStorage.setItem("token", res.data.token);
 
-      // ✅ redirect
+      // redirect
       navigate("/client");
 
     } catch (err) {
@@ -45,6 +46,7 @@ function Login() {
   };
 
   return (
+    <div style={overlay}>
     <AuthLayout image={loginImg}>
       <h2 style={{title, fontSize: "2.5rem", color: "#6B8F71", marginBottom: "0.1rem" }}>Hello 🐾</h2>
 
@@ -85,6 +87,7 @@ function Login() {
         </span>
       </p>
     </AuthLayout>
+    </div>
   );
 }
 
