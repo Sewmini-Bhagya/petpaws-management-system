@@ -5,7 +5,8 @@ const roleMiddleware = (requiredRole) => {
     try {
       const userId = req.user.user_id;
 
-      const [rows] = await db.promise().query(
+        // db is a mysql2/promise pool; it already returns promises
+        const [rows] = await db.query(
         `SELECT roles.role_name 
          FROM users 
          JOIN roles ON users.role_id = roles.role_id 

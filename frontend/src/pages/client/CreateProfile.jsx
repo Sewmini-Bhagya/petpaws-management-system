@@ -11,8 +11,10 @@ function CreateProfile() {
   const [lastName, setLastName] = useState("");
   const [phone, setPhone] = useState("");
   const [city, setCity] = useState("");
+  const [isSubmitting, setIsSubmitting] = useState(false);
 
   const handleCreate = async () => {
+    if (isSubmitting) return;
 
     if (!firstName || !lastName || !phone || !city) {
         alert("Please fill all fields!");
@@ -27,6 +29,8 @@ function CreateProfile() {
         }
 
     try {
+      setIsSubmitting(true);
+
       const token = localStorage.getItem("token");
       console.log("TOKEN:", token);
 
@@ -43,7 +47,7 @@ function CreateProfile() {
 
       navigate("/client");
     } catch (err) {
-    console.log("🔥 FULL ERROR:", err);
+    console.log("FULL ERROR:", err);
 
     if (err.response) {
       console.log("STATUS:", err.response.status);
@@ -52,7 +56,15 @@ function CreateProfile() {
       console.log("NO RESPONSE (network issue)");
     }
 
-    alert("Profile creation failed 😭");
+    if (err.response?.status === 409) {
+      alert("Profile already exists for this account");
+      navigate("/client");
+      return;
+    }
+
+    alert("Profile creation failed!");
+  } finally {
+    setIsSubmitting(false);
   }
   };
 
@@ -94,8 +106,12 @@ function CreateProfile() {
               style={input}
             />
 
-            <button style={button} onClick={handleCreate}>
-              Continue
+            <button
+              style={{ ...button, opacity: isSubmitting ? 0.7 : 1, cursor: isSubmitting ? "not-allowed" : "pointer" }}
+              onClick={handleCreate}
+              disabled={isSubmitting}
+            >
+              {isSubmitting ? "Creating..." : "Continue"}
             </button>
           </div>
         </div>
@@ -171,7 +187,7 @@ const input = {
 };
 
 const button = {
-  marginTop: "1rem",
+  marginTop: "0.8rem",
   padding: "0.8rem",
   background: "#6B8F71",
   color: "white",

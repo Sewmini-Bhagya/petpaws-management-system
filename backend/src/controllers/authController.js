@@ -186,9 +186,10 @@ exports.getMe = async (req, res) => {
     const userId = req.user.user_id;
 
     const [users] = await db.query(
-      `SELECT u.user_id, u.email, up.first_name
+      `SELECT u.user_id, u.email, up.first_name, r.role_name
        FROM users u
        LEFT JOIN user_profiles up ON u.user_id = up.user_id
+       LEFT JOIN roles r ON u.role_id = r.role_id
        WHERE u.user_id = ?`,
       [userId]
     );

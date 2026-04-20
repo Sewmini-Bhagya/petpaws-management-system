@@ -1,8 +1,10 @@
 import { useState } from "react";
 import { useNavigate } from "react-router-dom";
+import { useContext } from "react";
 import AuthLayout from "../../components/AuthLayout";
 import signupImg from "../../assets/signup.jpeg";
 import API from "../../api/axios";
+import { AuthContext } from "../../context/AuthContext";
 
 import {
   form,
@@ -18,6 +20,7 @@ function Signup() {
   const [password, setPassword] = useState("");
   const [confirmPassword, setConfirmPassword] = useState("");
   const navigate = useNavigate();
+  const { login } = useContext(AuthContext);
 
   const handleSignup = async () => {
     
@@ -37,7 +40,7 @@ function Signup() {
         password,
       });
 
-      localStorage.setItem("token", res.data.token);
+      await login(res.data);
 
       navigate("/create-profile");
     } catch (err) {
@@ -54,7 +57,7 @@ function Signup() {
           Welcome! 🐾
         </h2>
 
-        <p style={{ ...subtitle, fontSize: "1.5rem", color: "#656565" }}>
+        <p style={{ ...subtitle, marginTop:"1rem", fontSize: "1.5rem", color: "#656565" }}>
           Create an account, it's free
         </p>
 
@@ -113,7 +116,7 @@ const right = {
 };
 
 const loginText = {
-  marginTop: "1.2rem",
+  marginTop: "0.5rem",
   textAlign: "center"
 };
 

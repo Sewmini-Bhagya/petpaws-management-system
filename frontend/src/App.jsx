@@ -25,21 +25,13 @@ import AdminDashboard from "./pages/admin/AdminDashboard";
 import ReceptionistDashboard from "./pages/receptionist/ReceptionistDashboard";
 import VetDashboard from "./pages/vet/VetDashboard";
 import UserManagement from "./pages/admin/UserManagement";
+import InventoryManagement from "./pages/admin/InventoryManagement";
 
 function App() {
   return (
     <AuthProvider>
       <Router>
         <Routes>
-
-          <Route
-            path="/client"
-            element={
-              <ProtectedRoute>
-                <ClientDashboard />
-              </ProtectedRoute>
-            }
-          />
 
           {/* PUBLIC */}
           <Route path="/" element={<Home />} />
@@ -52,26 +44,132 @@ function App() {
           <Route path="/reset-password/:token" element={<ResetPassword />} />
 
           {/* CLIENT */}
-          <Route path="/client" element={<ClientDashboard />} />
-          <Route path="/book" element={<BookAppointment />} />
-          <Route path="/care-hub" element={<PetCareHub />} />
-          <Route path="/care-guide/:breed" element={<CareGuide />} />
-          <Route path="/pets" element={<MyPets />} />
-          <Route path="/pets/add" element={<AddPet />} />
-          <Route path="/pets/:id" element={<PetProfile />} />
-          <Route path="/pets/:id/history" element={<MedicalHistory />} />
-          <Route path="/pets/:id/records" element={<MedicalRecords />} />
-          <Route path="/create-profile" element={<CreateProfile />} />
+          <Route
+            path="/client"
+            element={
+              <ProtectedRoute allowedRoles={["CLIENT"]}>
+                <ClientDashboard />
+              </ProtectedRoute>
+            }
+          />
+          <Route
+            path="/book"
+            element={
+              <ProtectedRoute allowedRoles={["CLIENT"]}>
+                <BookAppointment />
+              </ProtectedRoute>
+            }
+          />
+          <Route
+            path="/care-hub"
+            element={
+              <ProtectedRoute allowedRoles={["CLIENT"]}>
+                <PetCareHub />
+              </ProtectedRoute>
+            }
+          />
+          <Route
+            path="/care-guide/:breed"
+            element={
+              <ProtectedRoute allowedRoles={["CLIENT"]}>
+                <CareGuide />
+              </ProtectedRoute>
+            }
+          />
+          <Route
+            path="/pets"
+            element={
+              <ProtectedRoute allowedRoles={["CLIENT"]}>
+                <MyPets />
+              </ProtectedRoute>
+            }
+          />
+          <Route
+            path="/pets/add"
+            element={
+              <ProtectedRoute allowedRoles={["CLIENT"]}>
+                <AddPet />
+              </ProtectedRoute>
+            }
+          />
+          <Route
+            path="/pets/:id"
+            element={
+              <ProtectedRoute allowedRoles={["CLIENT"]}>
+                <PetProfile />
+              </ProtectedRoute>
+            }
+          />
+          <Route
+            path="/pets/:id/history"
+            element={
+              <ProtectedRoute allowedRoles={["CLIENT"]}>
+                <MedicalHistory />
+              </ProtectedRoute>
+            }
+          />
+          <Route
+            path="/pets/:id/records"
+            element={
+              <ProtectedRoute allowedRoles={["CLIENT"]}>
+                <MedicalRecords />
+              </ProtectedRoute>
+            }
+          />
+          <Route
+            path="/create-profile"
+            element={
+              <ProtectedRoute allowedRoles={["CLIENT"]}>
+                <CreateProfile />
+              </ProtectedRoute>
+            }
+          />
 
           {/* ADMIN */}
-          <Route path="/admin" element={<AdminDashboard />} />
-          <Route path="/um" element={<UserManagement />} />
+          <Route
+            path="/admin"
+            element={
+              <ProtectedRoute allowedRoles={["ADMIN"]}>
+                <AdminDashboard />
+              </ProtectedRoute>
+            }
+          />
+          <Route
+            path="/um"
+            element={
+              <ProtectedRoute allowedRoles={["ADMIN"]}>
+                <UserManagement />
+              </ProtectedRoute>
+            }
+          />
+          <Route
+            path="/inventory"
+            element={
+              <ProtectedRoute allowedRoles={["ADMIN"]}>
+                <InventoryManagement />
+              </ProtectedRoute>
+            }
+          />
 
           {/* RECEPTIONIST */}
-          <Route path="/recep" element={<ReceptionistDashboard />} />
+          <Route
+            path="/recep"
+            element={
+              <ProtectedRoute allowedRoles={["RECEPTIONIST"]}>
+                <ReceptionistDashboard />
+              </ProtectedRoute>
+            }
+          />
 
           {/* VET */}
-          <Route path="/vet" element={<VetDashboard />} />
+          <Route
+            path="/vet"
+            element={
+              <ProtectedRoute allowedRoles={["VET"]}>
+                <VetDashboard />
+              </ProtectedRoute>
+            }
+          />
 
         </Routes>
       </Router>

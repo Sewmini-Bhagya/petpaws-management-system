@@ -1,29 +1,70 @@
 import { useState, useEffect } from "react";
 import { AuthContext } from "./AuthContext";
+import API from "../api/axios";
 
 export const AuthProvider = ({ children }) => {
-  const [user, setUser] = useState(null);
+  const [authLoading, setAuthLoading] = useState(true);
 
-  useEffect(() => {
+  const [user, setUser] = useState(() => {
     const storedUser = localStorage.getItem("user");
-
     if (storedUser && storedUser !== "undefined") {
       try {
-        setUser(JSON.parse(storedUser));
+        return JSON.parse(storedUser);
       } catch {
         localStorage.removeItem("user");
       }
     }
+    return null;
+  });
+
+  const fetchMe = async () => {
+    const token = localStorage.getItem("token");
+    const hasValidToken = token && token !== "undefined" && token !== "null";
+
+    if (!hasValidToken) {
+      localStorage.removeItem("token");
+      setUser(null);
+      localStorage.removeItem("user");
+      return null;
+    }
+
+    try {
+      const res = await API.get("/auth/me");
+      localStorage.setItem("user", JSON.stringify(res.data));
+      setUser(res.data);
+      return res.data;
+    } catch {
+      // Token invalid/expired or backend unavailable
+      localStorage.removeItem("token");
+      localStorage.removeItem("user");
+      setUser(null);
+      return null;
+    }
+  };
+
+  useEffect(() => {
+    // Ensure user is real and up-to-date (not a stale cached object)
+    const initAuth = async () => {
+      try {
+        await fetchMe();
+      } finally {
+        setAuthLoading(false);
+      }
+    };
+
+    void initAuth();
   }, []);
 
-  const login = (data) => {
-    localStorage.setItem("token", data.token);
+  const login = async (dataOrToken) => {
+    const token =
+      typeof dataOrToken === "string" ? dataOrToken : dataOrToken?.token;
 
-    // TEMP: fake user so app works
-    const fakeUser = { role: "client" };
+    if (!token) {
+      throw new Error("Login token is missing");
+    }
 
-    localStorage.setItem("user", JSON.stringify(fakeUser));
-    setUser(fakeUser);
+    localStorage.setItem("token", token);
+    return await fetchMe();
   };
 
   const logout = () => {
@@ -32,7 +73,9 @@ export const AuthProvider = ({ children }) => {
   };
 
   return (
-    <AuthContext.Provider value={{ user, login, logout }}>
+    <AuthContext.Provider
+      value={{ user, authLoading, login, logout, refreshUser: fetchMe }}
+    >
       {children}
     </AuthContext.Provider>
   );

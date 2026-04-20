@@ -86,7 +86,7 @@ export const title = {
 };
 
 export const subtitle = {
-  marginBottom: "1.5rem",
+  marginBottom: "1.2rem",
   color: "#666",
   fontSize: "0.9rem"
 };

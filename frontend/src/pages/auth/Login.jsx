@@ -1,8 +1,10 @@
 import { useState } from "react";
 import { useNavigate } from "react-router-dom";
+import { useContext } from "react";
 import AuthLayout from "../../components/AuthLayout";
 import loginImg from "../../assets/login.jpeg";
 import API from "../../api/axios";
+import { AuthContext } from "../../context/AuthContext";
 
 import {
   overlay,
@@ -18,6 +20,7 @@ import {
 
 function Login() {
   const navigate = useNavigate();
+  const { login } = useContext(AuthContext);
 
   // STATE
   const [email, setEmail] = useState("");
@@ -33,15 +36,19 @@ function Login() {
 
       console.log("LOGIN SUCCESS:", res.data);
 
-      // save token
-      localStorage.setItem("token", res.data.token);
+      // Save token + load current user
+      const currentUser = await login(res.data.token);
 
-      // redirect
-      navigate("/client");
+      // Role-based redirect
+      const role = currentUser?.role_name || currentUser?.role;
+      if (role === "ADMIN") navigate("/admin");
+      else if (role === "RECEPTIONIST") navigate("/recep");
+      else if (role === "VET") navigate("/vet");
+      else navigate("/client");
 
     } catch (err) {
       console.error("LOGIN ERROR:", err.response?.data || err.message);
-      alert("Login failed 😭");
+      alert("Login failed!");
     }
   };
 
@@ -75,7 +82,11 @@ function Login() {
 
         <span style={forgot} onClick={() => navigate("/forgot-password")}>Forgot password?</span>
 
-        <button style={button} onClick={handleLogin}>
+        <button
+          type="button"
+          style={button}
+          onClick={handleLogin}
+        >
           Login
         </button>
       </div>

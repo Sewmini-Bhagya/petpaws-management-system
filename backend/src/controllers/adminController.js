@@ -96,7 +96,7 @@ exports.getAdminDashboard = async (req, res) => {
 
     // TOTAL STOCK (if you have inventory table)
     const [stock] = await db.query(
-      "SELECT COUNT(*) AS count FROM products"
+      "SELECT SUM(quantity_available) AS total FROM inventory_stock"
     );
 
     // TOTAL VISITS (appointments = visits)

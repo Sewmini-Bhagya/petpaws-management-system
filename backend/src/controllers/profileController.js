@@ -19,11 +19,20 @@ exports.createProfile = async (req, res) => {
 
     const email = userRows[0].email;
 
-    // insert profile
-    const [result] = await db.query(
-        "INSERT INTO user_profiles (user_id, first_name, last_name, phone, city) VALUES (?, ?, ?, ?, ?)",
-        [userId, first_name, last_name, phone, city]
+    // insert profile only if user has no existing profile (prevents spam double-create)
+    const [insertResult] = await db.query(
+      `INSERT INTO user_profiles (user_id, first_name, last_name, phone, city)
+       SELECT ?, ?, ?, ?, ?
+       FROM DUAL
+       WHERE NOT EXISTS (
+         SELECT 1 FROM user_profiles WHERE user_id = ?
+       )`,
+      [userId, first_name, last_name, phone, city, userId]
     );
+
+    if (insertResult.affectedRows === 0) {
+      return res.status(409).json({ message: "Profile already exists for this account" });
+    }
 
     // send email
     await sendEmail(

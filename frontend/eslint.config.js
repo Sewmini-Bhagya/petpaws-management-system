@@ -24,6 +24,9 @@ export default defineConfig([
     },
     rules: {
       'no-unused-vars': ['error', { varsIgnorePattern: '^[A-Z_]' }],
+      // React doesn't forbid setting state in an effect; this rule is overly strict
+      // and prevents common patterns like "fetch current user on mount".
+      'react-hooks/set-state-in-effect': 'off',
     },
   },
 ])

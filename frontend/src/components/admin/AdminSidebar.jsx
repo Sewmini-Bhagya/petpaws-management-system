@@ -11,7 +11,7 @@ function AdminSidebar() {
         <NavItem text="Home" onClick={() => navigate("/admin")} />
         <NavItem text="User Management" onClick={() => navigate("/um")} />
         <NavItem text="Profile Management" />
-        <NavItem text="Inventory Management" />
+        <NavItem text="Inventory Management" onClick={() => navigate("/inventory")} />
         <NavItem text="Appointment Management" />
         <NavItem text="Services Management" />
         <NavItem text="Loyalty" />

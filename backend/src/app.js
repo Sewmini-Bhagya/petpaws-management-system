@@ -13,6 +13,7 @@ const paymentRoutes = require('./routes/paymentRoutes');
 const profileRoutes = require("./routes/profileRoutes");
 const clientRoutes = require("./routes/clientRoutes");
 const serviceRoutes = require("./routes/serviceRoutes");
+const inventoryRoutes = require("./routes/inventoryRoutes");
 
 
 app.use(cors({
@@ -23,6 +24,7 @@ app.use(cors({
 
 // Middleware
 app.use(express.json());
+app.use(express.urlencoded({ extended: false }));
 
 // API Routes
 app.use('/api/auth', authRoutes);
@@ -35,6 +37,7 @@ app.use('/api/payments', paymentRoutes);
 app.use("/api/profile", profileRoutes);
 app.use("/api/client", clientRoutes);
 app.use("/api/services", serviceRoutes);
+app.use("/api/inventory", inventoryRoutes);
 
 // Health check route
 app.get('/', (req, res) => {
